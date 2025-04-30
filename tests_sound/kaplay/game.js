@@ -7,11 +7,12 @@ const k = kaplay({
     clearColor: [0, 0, 0],
     debug: true
 });
-
+loadSound("jump", "/tests_sound/kaplay/openai-fm-coral-audio.wav");
 // Create a simple scene
 k.scene("main", () => {
     // Set gravity
     k.setGravity(1000);
+
 
     // Add a player (using a rectangle instead of sprite)
     const player = k.add([
@@ -62,6 +63,7 @@ k.scene("main", () => {
     k.onKeyDown("up", () => {
         if (player.isGrounded()) {
             player.jump(400);
+            play("jump")
         }
     });
 
