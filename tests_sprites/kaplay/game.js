@@ -9,6 +9,15 @@ const k = kaplay({
 });
 // loading sprites
 loadSprite("test_sprite", "/tests_sprites/kaplay/test_sprite.png");
+loadSprite("slime_test", "/tests_sprites/kaplay/slime.test.png");
+//loading sprite sheet 
+loadSprite("slime_test", "/tests_sprites/kaplay/slime.test.png", {
+    sliceX: 2, // how many sprites are in the X axis
+    sliceY: 3, // how many sprites are in the Y axis
+    anims: {
+        jump: { from: 0, to: 8, loop: false }
+    },
+});
 
 // Create a simple scene
 k.scene("main", () => {
@@ -20,7 +29,7 @@ k.scene("main", () => {
         k.pos(80, 40),
         k.area(),
         k.body(),
-        k.sprite("test_sprite"),
+        k.sprite("slime_test"),
     ]);
 
     // Add some platforms

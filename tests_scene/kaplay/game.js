@@ -18,6 +18,7 @@ k.scene('test', () => {
         k.color(0, 0, 255),
     ]);
 })
+
 k.scene("main", () => {
     k.onKeyDown("p", () => {
         k.go("test");
