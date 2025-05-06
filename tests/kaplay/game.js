@@ -12,6 +12,17 @@ const k = kaplay({
 k.scene("main", () => {
     // Set gravity
     k.setGravity(1000);
+    function createhitbox(x,y) {
+        return k.add([
+
+            rect(16, 16),
+            pos(x+30, y),
+            color(255, 1, 1),
+            area(),
+            body({ isStatic: true }),
+        ]);
+    }
+
 
     // Add a player
     const player = k.add([
@@ -68,6 +79,13 @@ k.scene("main", () => {
     // Collect beans
     player.onCollide("bean", (bean) => {
         k.destroy(bean);
+    });
+    k.onKeyDown("space", () => {
+        let hitbox = createhitbox(player.x, player.y);
+        k.onCollide("hitbox", (hitbox, other) => {
+            k.destroy(hitbox);
+            k.destroy(other);
+        });
     });
 
     // Scene transition
