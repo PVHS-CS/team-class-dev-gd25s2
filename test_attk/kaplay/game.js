@@ -2,9 +2,9 @@
 const k = kaplay({
     width: 800,
     height: 600,
-    background: [0, 0, 0],
+    background: [173, 216, 230],  // Light cyan
     scale: 1,
-    clearColor: [0, 0, 0],
+    clearColor: [173, 216, 230],  // Light cyan
     debug: true
 });
 
@@ -14,35 +14,46 @@ k.scene("main", () => {
     k.setGravity(1000);
 
     // Function to create health bar
-    function createHealthBar(entity, isPlayer = true) {
-        const barWidth = 50;
-        const barHeight = 6;
+    function createHealthBar(entity) {
+        const barWidth = entity.width;
+        const barHeight = 20;
         const padding = 2;
+        const yOffset = 40;
         
-        // Create container for health bar
-        const healthBar = k.add([
-            k.pos(entity.pos.x, entity.pos.y - 20),
-            k.rect(barWidth + padding * 2, barHeight + padding * 2),
+        // Create background and health bar
+        let midpoint = (entity.width/2)+ entity.pos.x
+        const healthBarBg = k.add([
+            k.pos(entity.pos.x,entity.pos.y - yOffset),
+            k.rect(barWidth, barHeight),
             k.color(0, 0, 0),
-            k.opacity(0.8),
+            k.fixed(),
+            k.z(1),
+            "healthBarBg"
+        ]);
+
+        const healthBar = k.add([
+            k.pos(entity.pos.x + padding, entity.pos.y - yOffset + padding),
+            k.rect(barWidth - padding * 2, barHeight - padding * 2),
+            k.color(255, 0, 0),
+            k.fixed(),
+            k.z(2),
             "healthBar"
         ]);
 
-        // Create the actual health bar
-        const healthFill = k.add([
-            k.pos(entity.pos.x + padding, entity.pos.y - 20 + padding),
-            k.rect(barWidth * (entity.hp() / entity.maxHealth()), barHeight),
-            k.color(0, 255, 0),
-            "healthFill"
-        ]);
-
-        // Fade out and destroy after 2 seconds
-        k.wait(2, () => {
-            k.destroy(healthBar);
-            k.destroy(healthFill);
+        // Update health bar
+        k.onUpdate(() => {
+            midpoint = (entity.width/20)+ entity.pos.x
+            const x = midpoint - barWidth/2;
+            const y = entity.pos.y - yOffset;
+            healthBarBg.pos = k.vec2(x, y);
+            healthBar.pos = k.vec2(x + padding, y + padding);
+            healthBar.width = (barWidth - padding * 2) * (entity.hp() / (entity.maxHP() || 4));
         });
 
-        return { healthBar, healthFill };
+        k.wait(2, () => {
+            k.destroy(healthBarBg);
+            k.destroy(healthBar);
+        });
     }
 
     function createhitbox(x, y, direction = 1) {
@@ -51,22 +62,24 @@ k.scene("main", () => {
             k.pos(x + (50 * direction), y),
             k.color(255, 1, 1),
             k.area(),
-            k.body({ isStatic: true }),
-            k.opacity(1),
-            k.lifespan(0.1), // Destroy after 0.1 seconds
+            k.body({ isStatic: true, isSolid: false }),
+            k.opacity(0.5),
+            k.lifespan(0.1),
             "hitbox"
         ]);
 
-        hitbox.onCollide("player", (hitbox) => {
-            player.hurt(1);
-            createHealthBar(player, true);
-            console.log("Player took damage! Health:", player.hp());
+        hitbox.onCollide("player", () => {
+            if (!player.isDead) {
+                player.hurt(1);
+                createHealthBar(player);
+            }
         });
 
-        hitbox.onCollide("bot", (hitbox) => {
-            bot.hurt(1);
-            createHealthBar(bot, false);
-            console.log("Bot took damage! Health:", bot.hp());
+        hitbox.onCollide("bot", () => {
+            if (!bot.isDead) {
+                bot.hurt(1);
+                createHealthBar(bot);
+            }
         });
 
         return hitbox;
@@ -190,7 +203,7 @@ k.scene("main", () => {
         k.rect(2000, 20),
         k.area(),
         k.body({ isStatic: true }),
-        k.color(0, 0, 255),
+        k.color(0, 0, 0),
     ]);
 
     k.add(["platform",
@@ -198,7 +211,7 @@ k.scene("main", () => {
         k.rect(120, 20),
         k.area(),
         k.body({ isStatic: true }),
-        k.color(0, 0, 255),
+        k.color(0, 0, 0),
     ]);
 
     // Add some collectibles
