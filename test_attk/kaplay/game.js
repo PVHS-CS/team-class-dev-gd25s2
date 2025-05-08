@@ -13,6 +13,38 @@ k.scene("main", () => {
     // Set gravity
     k.setGravity(1000);
 
+    // Function to create health bar
+    function createHealthBar(entity, isPlayer = true) {
+        const barWidth = 50;
+        const barHeight = 6;
+        const padding = 2;
+        
+        // Create container for health bar
+        const healthBar = k.add([
+            k.pos(entity.pos.x, entity.pos.y - 20),
+            k.rect(barWidth + padding * 2, barHeight + padding * 2),
+            k.color(0, 0, 0),
+            k.opacity(0.8),
+            "healthBar"
+        ]);
+
+        // Create the actual health bar
+        const healthFill = k.add([
+            k.pos(entity.pos.x + padding, entity.pos.y - 20 + padding),
+            k.rect(barWidth * (entity.hp() / entity.maxHealth()), barHeight),
+            k.color(0, 255, 0),
+            "healthFill"
+        ]);
+
+        // Fade out and destroy after 2 seconds
+        k.wait(2, () => {
+            k.destroy(healthBar);
+            k.destroy(healthFill);
+        });
+
+        return { healthBar, healthFill };
+    }
+
     function createhitbox(x, y, direction = 1) {
         const hitbox = k.add([
             k.rect(16, 16),
@@ -27,11 +59,13 @@ k.scene("main", () => {
 
         hitbox.onCollide("player", (hitbox) => {
             player.hurt(1);
+            createHealthBar(player, true);
             console.log("Player took damage! Health:", player.hp());
         });
 
         hitbox.onCollide("bot", (hitbox) => {
             bot.hurt(1);
+            createHealthBar(bot, false);
             console.log("Bot took damage! Health:", bot.hp());
         });
 
@@ -51,7 +85,8 @@ k.scene("main", () => {
             moveDir: 1,  // Track player's movement direction
             attackCooldown: 0,
             canAttack: true,
-            isDead: false
+            isDead: false,
+            maxHealth: 4
         }
     ]);
 
@@ -75,7 +110,8 @@ k.scene("main", () => {
             attackRange: 150,   // Attack range in pixels
             attackCooldown: 0,
             canAttack: true,
-            isDead: false
+            isDead: false,
+            maxHealth: 4
         }
     ]);
 
