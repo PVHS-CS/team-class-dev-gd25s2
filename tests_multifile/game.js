@@ -1,18 +1,26 @@
 // Initialize Kaplay
-const k = kaplay({
+const k = kaboom({
     width: 800,
     height: 600,
     background: [0, 0, 0],
     scale: 1,
     clearColor: [0, 0, 0],
-    debug: true
+    debug: false,
+    pixelDensity: 1, // avoid dbl on highrez screens
+    hashGridSize: 64,
 });
+
+// Load sprites
+k.loadSprite("floor", "sprites/skuller.png");
+k.loadSprite("coin", "sprites/egg.png");
+k.loadSprite("spike", "sprites/watermelon.png");
+k.loadSprite("special", "sprites/bag.png");
 
 // Set gravity
 k.setGravity(1000);
 
 // Level management
-const levels = ["level1", "level2", "level3", "level4", "level5"];
+const levels = ["level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8"];
 let currentLevelIndex = 0;
 
 function goToNextLevel() {
@@ -27,6 +35,9 @@ k.scene("level1", () => {
     setupPlayerControls(k, player);
     createLevel1(k);
     k.onKeyPress("p", goToNextLevel);
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
 });
 
 k.scene("level2", () => {
@@ -34,6 +45,9 @@ k.scene("level2", () => {
     setupPlayerControls(k, player);
     createLevel2(k);
     k.onKeyPress("p", goToNextLevel);
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
 });
 
 k.scene("level3", () => {
@@ -41,6 +55,9 @@ k.scene("level3", () => {
     setupPlayerControls(k, player);
     createLevel3(k);
     k.onKeyPress("p", goToNextLevel);
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
 });
 
 k.scene("level4", () => {
@@ -48,6 +65,9 @@ k.scene("level4", () => {
     setupPlayerControls(k, player);
     createLevel4(k);
     k.onKeyPress("p", goToNextLevel);
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
 });
 
 k.scene("level5", () => {
@@ -55,7 +75,40 @@ k.scene("level5", () => {
     setupPlayerControls(k, player);
     createLevel5(k);
     k.onKeyPress("p", goToNextLevel);
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
 });
 
+k.scene("level6", () => {
+    const player = createPlayer(k);
+    setupPlayerControls(k, player);
+    createLevel6(k);
+    k.onKeyPress("p", goToNextLevel);
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
+});
+
+k.scene("level7", () => {
+    const player = createPlayer(k);
+    setupPlayerControls(k, player);
+    createLevel7(k);
+    k.onKeyPress("p", goToNextLevel);
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
+});
+
+
+k.scene("level8", () => {
+    const player = createPlayer(k);
+    setupPlayerControls(k, player);
+    createLevel8(k);
+    k.onKeyPress("p", goToNextLevel);
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
+});
 // Start with level 1
 k.go("level1"); 
