@@ -30,12 +30,15 @@ function setupPlayerControls(k, player) {
     k.onKeyDown("right", () => {
         player.move(200, 0);   // Only move horizontally
     });
-
-    k.onKeyPress("space", () => {  // Changed from "up" to "space" for better control
+    
+    function handleJump() {
         if (player.isGrounded()) {
             player.jump(400);  // Add specific jump force
         }
-    });
+    }
+
+    k.onKeyPress("space", handleJump);
+    k.onKeyPress("up", handleJump);
 
     // Reset position with 'w' key
     k.onKeyPress("w", () => {
