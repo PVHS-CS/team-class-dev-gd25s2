@@ -1,3 +1,22 @@
+function createLevel1() {
+    const map = [
+        "wwwwwwwwww",
+        "w        w",
+        "w        w",
+        "w        w",
+        "w        w",
+        "w        w",
+        "w        w",
+        "w        w",
+        "w        w",
+        "wwwwwwwwww"
+    ];
+    return addLevel(map, levelConfig);
+}
+
+// Register the level
+registerLevel("level1", createLevel1);
+
 function createLevel1(k) {
     // Add some platforms
     k.add([

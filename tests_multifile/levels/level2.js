@@ -27,4 +27,7 @@ function createLevel2(k) {
             "bean",
         ]);
     }
-} 
+}
+
+// Register the level
+registerLevel("level2", createLevel2); 

@@ -55,4 +55,7 @@ function createLevel5(k) {
             "bean",
         ]);
     }
-} 
+}
+
+// Register the level
+registerLevel("level5", createLevel5); 

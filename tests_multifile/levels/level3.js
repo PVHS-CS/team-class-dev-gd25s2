@@ -1,3 +1,6 @@
+
+registerLevel("level3", createLevel3);
+
 function createLevel3(k) {
     // Create static platforms
     const staticPlatforms = [

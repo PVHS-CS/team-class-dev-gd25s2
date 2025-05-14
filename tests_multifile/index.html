@@ -7,16 +7,22 @@
     <script src="https://unpkg.com/kaplay@3001/dist/kaboom.js"></script>
 </head>
 <body>
-    <script src="levels/levelConfig.js"></script>
-    <script src="levels/level1.js"></script>
-    <script src="levels/level2.js"></script>
-    <script src="levels/level3.js"></script>
-    <script src="levels/level4.js"></script>
-    <script src="levels/level5.js"></script>
-    <script src="levels/level6.js"></script>
-    <script src="levels/level7.js"></script>
-    <script src="levels/level8.js"></script>
-    <script src="player.js"></script>
-    <script src="game.js"></script>
+    <!-- Core game setup -->
+    <script src="game.js" defer></script>
+    <script src="player.js" defer></script>
+    <script src="levels/levelConfig.js" defer></script>
+    
+    <!-- Level management -->
+    <script src="levelManager.js" defer></script>
+    
+    <!-- Level files -->
+    <script src="levels/level1.js" defer></script>
+    <script src="levels/level2.js" defer></script>
+    <script src="levels/level3.js" defer></script>
+    <script src="levels/level4.js" defer></script>
+    <script src="levels/level5.js" defer></script>
+    <script src="levels/level6.js" defer></script>
+    <script src="levels/level7.js" defer></script>
+    <script src="levels/level8.js" defer></script>
 </body>
 </html> 

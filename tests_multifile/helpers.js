@@ -11,7 +11,7 @@ function makeStaticCanvasLayer(spriteArray, { width, height }) {
 
 // Utility to check if an object is on screen (basic culling)
 function isOnScreen(pos, spriteSize = 32, buffer = 64) {
-    const cam = k.camPos();
+    const cam = k.getCamPos();
     const screenSize = k.vec2(k.width(), k.height());
     const min = cam.sub(buffer);
     const max = cam.add(screenSize).add(buffer);
@@ -31,7 +31,7 @@ function drawSpriteArray(spriteArray) {
 // 3. onDraw helper that applies camera offset (for camera-based movement)
 function drawSpriteArrayWithCam(spriteArray) {
     k.onDraw(() => {
-        const cam = k.camPos();
+        const cam = k.getCamPos();
         spriteArray.forEach(obj => {
             const screenPos = obj.pos.sub(cam); // world-to-screen
             k.drawSprite({ sprite: obj.sprite, pos: screenPos, flipX: obj.flipX, flipY: obj.flipY });
@@ -52,7 +52,7 @@ function setupLayeredDraw({
     const fgCanvas = fgStatic.length > 0 ? makeStaticCanvasLayer(fgStatic, dimensions) : null;
 
     k.onDraw(() => {
-        const cam = k.camPos();
+        const cam = k.getCamPos();
         const drawPos = cameraAware ? k.vec2(0, 0).sub(cam) : k.vec2(0, 0);
 
         if (bgCanvas) {
@@ -109,7 +109,7 @@ function drawPackedSpriteArrayWithCam(spriteArray, clearCache = false) {
 
     const { data, sprites } = __packedSpriteCache.get(spriteArray);
     k.onDraw(() => {
-        const cam = k.camPos();
+        const cam = k.getCamPos();
         for (let i = 0; i < data.length; i += 5) {
             const sprite = sprites[data[i]];
             const pos = k.vec2(data[i + 1], data[i + 2]);
@@ -172,13 +172,13 @@ function makePackedStaticCanvasLayer(spriteArray, { width, height }, clearCache 
 // // 1. Pre-render a static background layer
 // const bgCanvas = makeStaticCanvasLayer([grassTile, tree], { width: 4000, height: 1000 });
 // k.onDraw(() => {
-//     k.drawCanvas({ canvas: bgCanvas, pos: k.vec2(0, 0).sub(k.camPos()) });
+//     k.drawCanvas({ canvas: bgCanvas, pos: k.vec2(0, 0).sub(k.getCamPos()) });
 // });
 
 // // 1. Optimized pre-render with packed format
 // const packedBgCanvas = makePackedStaticCanvasLayer([grassTile, tree], { width: 4000, height: 1000 });
 // k.onDraw(() => {
-//     k.drawCanvas({ canvas: packedBgCanvas, pos: k.vec2(0, 0).sub(k.camPos()) });
+//     k.drawCanvas({ canvas: packedBgCanvas, pos: k.vec2(0, 0).sub(k.getCamPos()) });
 // });
 
 // // 2. Draw a dynamic cloud layer every frame

@@ -72,7 +72,58 @@ function createLevel7() {
     // Store the original map for recreation
     level.originalMap = map;
 
-
+    // Add update handler to recreate items
+    level.onUpdate(() => {
+        const cPose = k.getCamPos();
+        const viewWidth = k.width() / k.scale();
+        const viewHeight = k.height() / k.scale();
+        
+        // Check each tile in the current view
+        for (let y = Math.floor(cPose.y / 32); y < Math.ceil((cPose.y + viewHeight) / 32); y++) {
+            for (let x = Math.floor(cPose.x / 32); x < Math.ceil((cPose.x + viewWidth) / 32); x++) {
+                if (y >= 0 && y < map.length && x >= 0 && x < map[0].length) {
+                    const tile = map[y][x];
+                    const worldX = x * 32;
+                    const worldY = y * 32;
+                    
+                    // Check if there's already an item at this position
+                    const existingItems = k.get("coin", "spike", "special").filter(item => 
+                        Math.abs(item.pos.x - worldX) < 1 && 
+                        Math.abs(item.pos.y - worldY) < 1
+                    );
+                    
+                    if (existingItems.length === 0) {
+                        // Recreate items based on tile type
+                        if (tile === "c") {
+                            k.add([
+                                k.sprite("coin"),
+                                k.area(),
+                                k.pos(worldX, worldY),
+                                "coin"
+                            ]);
+                        } else if (tile === "^") {
+                            k.add([
+                                k.sprite("spike"),
+                                k.area(),
+                                k.pos(worldX, worldY),
+                                "spike"
+                            ]);
+                        } else if (tile === "s") {
+                            k.add([
+                                k.sprite("special"),
+                                k.area(),
+                                k.pos(worldX, worldY),
+                                "special"
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+    });
 
     return level;
-} 
+}
+
+// Register this level
+registerLevel("level7", createLevel7); 

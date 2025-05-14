@@ -2,7 +2,7 @@
 function createPlayer(k) {
     const start_x = 100;
     const start_y = 40;
-    
+
     const player = k.add([
         k.rect(32, 32),
         k.area(),
@@ -21,8 +21,14 @@ function createPlayer(k) {
         player.pos.y = start_y;
     });
 
+
+    player.onUpdate(() => {
+        k.setCamPos(player.pos);
+    });
+
     return player;
 }
+
 
 function setupPlayerControls(k, player) {
     // Movement controls

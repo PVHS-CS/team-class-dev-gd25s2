@@ -32,3 +32,5 @@ function createLevel8(k) {
         ]);
     }
 } 
+
+registerLevel("level8", createLevel8);

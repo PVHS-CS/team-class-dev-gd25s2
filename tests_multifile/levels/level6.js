@@ -40,6 +40,7 @@ function createLevel6() {
             map.push(row);
         }
     }
-
     return addLevel(map, levelConfig);
 } 
+// Register the level
+registerLevel("level6", createLevel6); 
