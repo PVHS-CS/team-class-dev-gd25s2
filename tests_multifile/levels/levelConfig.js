@@ -10,13 +10,13 @@ const levelConfig = {
             sprite("floor"),
             area(),
             k.body({ isStatic: true }),
-            k.offscreen({ hide: true, pause: true }),
+            k.offscreen({ hide: true, pause: true, unpause: true }),
             "floor"
         ],
         "$": () => [
             sprite("coin"),
             area(),
-            k.offscreen({ hide: true, pause: true }),
+            k.offscreen({ hide: true, pause: true, unpause: true }),
             "coin"
         ],
         "^": () => [
@@ -27,7 +27,7 @@ const levelConfig = {
         "&": () => [
             sprite("special"),
             area(),
-            k.offscreen({ hide: true, pause: true }),
+            k.offscreen({ hide: true, pause: true, unpause: true }),
             "special"
         ]
     }
