@@ -27,12 +27,15 @@ function createLevel1() {
         }
 
         // Add a spike
-        createSpike(k, ttpx(3), ttpx(0));
+        createSpike(k, ttpx(8), ttpx(10));
     
         // Add a portal to level8
         createPortal(k, ttpx(5), ttpx(5), "level8");
 
         createOrangy(k, ttpx(5 ), ttpx(5));
+        createOrangy(k, ttpx(10), ttpx(5));
+        createOrangy(k, ttpx(15), ttpx(5));
+        createOrangy(k, ttpx(20), ttpx(5));
 }
 
 // Register the level

@@ -8,6 +8,7 @@ function createOrangy(k, x, y) {
         k.pos(x, y),
         k.area(),
         k.body(),
+        k.scale(0.5),
         "orangy"
     ]);
 
