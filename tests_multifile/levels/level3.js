@@ -23,8 +23,11 @@ function createLevel3(k) {
     // Add a spike
     createSpike(k, 200, 40);
 
-    // Add a portal to level8
-    createPortal(k, 120, 40, "level8");
+    // Add a portal to level8 in a more visible location
+    createPortal(k, 300, 100, "level8");
+
+    // Add an orangy
+    createOrangy(k, 200, 80);
 
     // Add collectibles
     for (let i = 0; i < 4; i++) {

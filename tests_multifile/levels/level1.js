@@ -31,6 +31,8 @@ function createLevel1() {
     
         // Add a portal to level8
         createPortal(k, ttpx(5), ttpx(5), "level8");
+
+        createOrangy(k, ttpx(5 ), ttpx(5));
 }
 
 // Register the level
