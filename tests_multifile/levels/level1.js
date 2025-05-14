@@ -36,6 +36,10 @@ function createLevel1() {
         createOrangy(k, ttpx(10), ttpx(5));
         createOrangy(k, ttpx(15), ttpx(5));
         createOrangy(k, ttpx(20), ttpx(5));
+
+        createGel(k, ttpx(6), ttpx(12), 255, 0, 0); 
+        createGel(k, ttpx(12), ttpx(12), 0, 255, 0);
+        createGel(k, ttpx(18), ttpx(12), 0, 0, 255);
 }
 
 // Register the level
