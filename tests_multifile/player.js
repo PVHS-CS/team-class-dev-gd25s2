@@ -22,18 +22,26 @@ function createPlayer(k) {
 }
 
 function setupPlayerControls(k, player) {
+    const moveSpeed = 200;
+    const jumpForce = 400;
+
     // Movement controls
     k.onKeyDown("left", () => {
-        player.move(-200, 0);  // Only move horizontally
+        player.vel.x = -moveSpeed;
     });
 
     k.onKeyDown("right", () => {
-        player.move(200, 0);   // Only move horizontally
+        player.vel.x = moveSpeed;
+    });
+
+    // Stop horizontal movement when keys are released
+    k.onKeyRelease(["left", "right"], () => {
+        player.vel.x = 0;
     });
     
     function handleJump() {
         if (player.isGrounded()) {
-            player.jump(400);  // Add specific jump force
+            player.vel.y = -jumpForce;
         }
     }
 

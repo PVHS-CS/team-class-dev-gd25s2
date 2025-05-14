@@ -11,8 +11,12 @@ function createMovingPlatform(k, x, y) {
 
     // Animate the moving platform
     let direction = 1;
+    const speed = 100;
     k.onUpdate(() => {
-        platform.pos.x += 100 * direction * k.dt();
+        // Set velocity instead of direct position changes
+        platform.vel.x = speed * direction;
+        
+        // Change direction at boundaries
         if (platform.pos.x > x + 120) direction = -1;
         if (platform.pos.x < x - 120) direction = 1;
     });

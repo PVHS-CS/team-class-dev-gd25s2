@@ -32,15 +32,18 @@ function createLevel5(k) {
         k.color(0, 0, 255),
     ]);
 
-    // Animate the moving platforms
+    // Animate the moving platforms using velocity
     let direction1 = 1;
     let direction2 = -1;
+    const speed1 = 100;
+    const speed2 = 50;
     k.onUpdate(() => {
-        movingPlatform1.pos.x += 100 * direction1 * k.dt();
+        // Set velocities instead of direct position changes
+        movingPlatform1.vel.x = speed1 * direction1;
         if (movingPlatform1.pos.x > 400) direction1 = -1;
         if (movingPlatform1.pos.x < 200) direction1 = 1;
 
-        movingPlatform2.pos.y += 50 * direction2 * k.dt();
+        movingPlatform2.vel.y = speed2 * direction2;
         if (movingPlatform2.pos.y > 250) direction2 = -1;
         if (movingPlatform2.pos.y < 150) direction2 = 1;
     });

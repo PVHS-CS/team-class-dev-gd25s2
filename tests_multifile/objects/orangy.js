@@ -21,8 +21,8 @@ function createOrangy(k, x, y) {
 
     // Update movement
     k.onUpdate(() => {
-        // Simple movement
-        orangy.move(speed * direction, 0);
+        // Set velocity instead of direct movement
+        orangy.vel.x = speed * direction;
         
         // Update sprite direction by flipping only the sprite
         orangy.flipX = direction === 1;
