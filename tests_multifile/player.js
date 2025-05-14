@@ -1,53 +1,54 @@
 // Player creation and controls
 function createPlayer(k) {
-    const start_x = 100;
-    const start_y = 40;
-
     const player = k.add([
+        k.pos(40, 40),
         k.rect(32, 32),
-        k.area(),
-        k.body(),
-        k.pos(start_x, start_y),
         k.color(0, 255, 0),
+        k.area(),  // Simple area for collision
+        k.body(),
         "player"
     ]);
 
-    // Reset player position using world coordinates
-    k.onKeyDown("w", () => {
-        // Reset camera first
-        k.setCamPos(0, 0);
-        // Then reset player to absolute position
-        player.pos.x = start_x;
-        player.pos.y = start_y;
-    });
+    // Store initial position for reset
+    const startPos = k.vec2(40, 40);
 
-
-    player.onUpdate(() => {
-        k.setCamPos(player.pos);
-    });
+    // Add reset position function
+    player.resetPosition = () => {
+        player.pos = startPos;
+        player.vel = k.vec2(0, 0);
+    };
 
     return player;
 }
 
-
 function setupPlayerControls(k, player) {
     // Movement controls
     k.onKeyDown("left", () => {
-        player.move(-200, 0);
+        player.move(-200, 0);  // Only move horizontally
     });
 
     k.onKeyDown("right", () => {
-        player.move(200, 0);
+        player.move(200, 0);   // Only move horizontally
     });
 
-    k.onKeyDown("up", () => {
+    k.onKeyPress("space", () => {  // Changed from "up" to "space" for better control
         if (player.isGrounded()) {
-            player.jump(400);
+            player.jump(400);  // Add specific jump force
         }
+    });
+
+    // Reset position with 'w' key
+    k.onKeyPress("w", () => {
+        player.resetPosition();
     });
 
     // Collect beans
     player.onCollide("bean", (bean) => {
         k.destroy(bean);
+    });
+
+    // Debug collision with portal
+    player.onCollide("portal", () => {
+        console.log("Player collided with portal!");  // Debug log
     });
 } 

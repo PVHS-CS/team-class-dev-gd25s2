@@ -1,4 +1,3 @@
-
 registerLevel("level3", createLevel3);
 
 function createLevel3(k) {
@@ -18,22 +17,14 @@ function createLevel3(k) {
         ]);
     });
 
-    // Create moving platform
-    const movingPlatform = k.add([
-        k.rect(120, 20),
-        k.pos(280, 150),
-        k.area(),
-        k.body({ isStatic: true }),
-        k.color(0, 0, 255),
-    ]);
+    // Create moving platform using the new component
+    createMovingPlatform(k, 280, 150);
 
-    // Animate the moving platform
-    let direction = 1;
-    k.onUpdate(() => {
-        movingPlatform.pos.x += 100 * direction * k.dt();
-        if (movingPlatform.pos.x > 400) direction = -1;
-        if (movingPlatform.pos.x < 200) direction = 1;
-    });
+    // Add a spike
+    createSpike(k, 200, 40);
+
+    // Add a portal to level8
+    createPortal(k, 120, 40, "level8");
 
     // Add collectibles
     for (let i = 0; i < 4; i++) {
