@@ -21,14 +21,48 @@
       overflow: hidden;
       background: #000;
       position: fixed;
-      
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      /* Android specific */
       min-height: -webkit-fill-available;
       overscroll-behavior: none;
+    }
+
+    #menuScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    #menuScreen.hidden {
+      display: none;
+    }
+
+    .menu-button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 20px 40px;
+      border-radius: 8px;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      margin: 10px;
+    }
+
+    .menu-button:active {
+      background: rgba(255,255,255,0.4);
+      transform: scale(0.95);
     }
 
     canvas#gameCanvas {
@@ -40,15 +74,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      /* Android specific */
       min-height: -webkit-fill-available;
-    }
-
-    /* Android specific */
-    @supports (-webkit-touch-callout: none) {
-      html, body {
-        height: -webkit-fill-available;
-      }
     }
 
     #rotateNotice {
@@ -104,7 +130,7 @@
       .touch-button { display: none; }
     }
 
-    #fullscreenBtn {
+    #exitBtn {
       position: fixed;
       top: 10px;
       right: 10px;
@@ -124,12 +150,12 @@
       z-index: 1000;
     }
 
-    #fullscreenBtn:active {
+    #exitBtn:active {
       background: rgba(255,255,255,0.4);
       transform: scale(0.95);
     }
 
-    #fullscreenBtn.hidden {
+    #exitBtn.hidden {
       display: none;
     }
 
@@ -151,226 +177,235 @@
   </style>
 </head>
 <body>
+  <div id="menuScreen">
+    <h1 style="color: white; margin-bottom: 30px;">Platformer Game</h1>
+    <button class="menu-button" id="playBtn">Play Game</button>
+  </div>
 
-<div id="rotateNotice">Please rotate your device to landscape mode!</div>
-<canvas id="gameCanvas"></canvas>
+  <div id="rotateNotice">Please rotate your device to landscape mode!</div>
+  <canvas id="gameCanvas"></canvas>
 
-<button class="touch-button" id="leftBtn">←</button>
-<button class="touch-button" id="rightBtn">→</button>
-<button class="touch-button" id="jumpBtn">↑</button>
-<button class="touch-button" id="attackBtn">⚔</button>
-<button id="fullscreenBtn">⛶</button>
+  <button class="touch-button" id="leftBtn">←</button>
+  <button class="touch-button" id="rightBtn">→</button>
+  <button class="touch-button" id="jumpBtn">↑</button>
+  <button class="touch-button" id="attackBtn">⚔</button>
+  <button id="exitBtn">✕</button>
 
-<script src="https://unpkg.com/kaplay@3001/dist/kaplay.js"></script>
-<script>
-  // Prevent default touch behaviors
-  document.addEventListener('touchmove', function(e) {
-    if (e.target.classList.contains('touch-button')) {
+  <script src="https://unpkg.com/kaplay@3001/dist/kaplay.js"></script>
+  <script>
+    // Prevent default touch behaviors
+    document.addEventListener('touchmove', function(e) {
+      if (e.target.classList.contains('touch-button') || e.target.classList.contains('menu-button')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Prevent double-tap zoom
+    document.addEventListener('dblclick', function(e) {
       e.preventDefault();
-    }
-  }, { passive: false });
+    }, { passive: false });
 
-  // Prevent double-tap zoom
-  document.addEventListener('dblclick', function(e) {
-    e.preventDefault();
-  }, { passive: false });
+    // Initialize game but don't start it yet
+    const game = kaplay({
+      canvas: document.getElementById('gameCanvas'),
+      width: 800,
+      height: 450,
+      stretch: true,
+      letterbox: true,
+      background: [0, 0, 0],
+      pixelDensity: 1,
+      buttons: {
+        left: { keyboard: ['left', 'a'] },
+        right: { keyboard: ['right', 'd'] },
+        jump: { keyboard: ['space', 'up'] },
+        attack: { keyboard: ['x', 'z'] }
+      },
+      crisp: true,
+      maxFPS: 30,
+      debug: false
+    });
 
-  const game = kaplay({
-    canvas: document.getElementById('gameCanvas'),
-    width: 800,
-    height: 450,
-    stretch: true,
-    letterbox: true,
-    background: [0, 0, 0],
-    pixelDensity: 1,
-    buttons: {
-      left: { keyboard: ['left', 'a'] },
-      right: { keyboard: ['right', 'd'] },
-      jump: { keyboard: ['space', 'up'] },
-      attack: { keyboard: ['x', 'z'] }
-    },
+    // Hide game elements initially
+    document.getElementById('gameCanvas').style.display = 'none';
+    document.querySelectorAll('.touch-button').forEach(btn => btn.style.display = 'none');
+    document.getElementById('exitBtn').style.display = 'none';
 
-    crisp: true,
-    maxFPS: 30,
-    debug: false
-
-  });
-
-//   game.gravity(800);
-  // Basic player setup
-  const player = game.add([
-    game.pos(400, 300),
-    game.rect(32, 32),
-    game.color(0, 255, 0),
-    game.area(),
-    game.body()
-  ]);
-
-  // Add ground
-  game.add([
-    game.pos(0, 400),
-    game.rect(800, 50),
-    game.color(100, 100, 100),
-    game.area(),
-    game.body({ isStatic: true })
-  ]);
-
-  // Handle fullscreen and orientation
-  async function enterFullscreen() {
-    try {
-      // Try to lock screen orientation first
-      if (screen.orientation && screen.orientation.lock) {
-        try {
-          await screen.orientation.lock('landscape');
-        } catch (err) {
-          console.log('Orientation lock not supported');
+    // Enter fullscreen and start game
+    async function startGame() {
+      try {
+        const docEl = document.documentElement;
+        
+        // Try different fullscreen methods
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) {
+          await docEl.webkitRequestFullscreen();
+        } else if (docEl.mozRequestFullScreen) {
+          await docEl.mozRequestFullScreen();
+        } else if (docEl.msRequestFullscreen) {
+          await docEl.msRequestFullscreen();
         }
+
+        // Try to lock orientation after fullscreen
+        if (screen.orientation && screen.orientation.lock) {
+          try {
+            await screen.orientation.lock('landscape');
+          } catch (err) {
+            console.warn('Orientation lock failed:', err);
+          }
+        }
+
+        // Show game elements
+        document.getElementById('menuScreen').classList.add('hidden');
+        document.getElementById('gameCanvas').style.display = 'block';
+        
+        // Show touch buttons only on mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        document.querySelectorAll('.touch-button').forEach(btn => {
+          btn.style.display = isMobile ? 'block' : 'none';
+        });
+        
+        document.getElementById('exitBtn').style.display = 'block';
+
+        // Focus the canvas
+        document.getElementById('gameCanvas').focus();
+
+        // Initialize game elements
+        initializeGame();
+      } catch (err) {
+        console.error('Fullscreen error:', err);
       }
+    }
 
-      // Try different fullscreen methods
-      if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
-      } else if (document.documentElement.webkitRequestFullscreen) {
-        await document.documentElement.webkitRequestFullscreen();
-      } else if (document.documentElement.mozRequestFullScreen) {
-        await document.documentElement.mozRequestFullScreen();
-      } else if (document.documentElement.msRequestFullscreen) {
-        await document.documentElement.msRequestFullscreen();
+    // Exit fullscreen and return to menu
+    async function exitGame() {
+      try {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+
+        // Show menu, hide game
+        document.getElementById('menuScreen').classList.remove('hidden');
+        document.getElementById('gameCanvas').style.display = 'none';
+        document.querySelectorAll('.touch-button').forEach(btn => btn.style.display = 'none');
+        document.getElementById('exitBtn').style.display = 'none';
+      } catch (err) {
+        console.error('Exit fullscreen error:', err);
       }
+    }
 
-      // Try to hide UI
-      if (document.documentElement.webkitEnterFullscreen) {
-        document.documentElement.webkitEnterFullscreen();
+    // Initialize game elements
+    function initializeGame() {
+      // Clear any existing game elements
+      game.destroyAll();
+
+      // Basic player setup
+      const player = game.add([
+        game.pos(400, 300),
+        game.rect(32, 32),
+        game.color(0, 255, 0),
+        game.area(),
+        game.body()
+      ]);
+
+      // Add ground
+      game.add([
+        game.pos(0, 400),
+        game.rect(800, 50),
+        game.color(100, 100, 100),
+        game.area(),
+        game.body({ isStatic: true })
+      ]);
+
+      const speed = 200;
+      const projectileSpeed = 400;
+
+      // Movement
+      game.onButtonDown('left', () => {
+        player.move(-speed, 0);
+        player.flipX = true;
+      });
+      game.onButtonDown('right', () => {
+        player.move(speed, 0);
+        player.flipX = false;
+      });
+      game.onButtonPress('jump', () => player.jump(-400));
+      game.onButtonPress('attack', () => {
+        // Create a projectile
+        const projectile = game.add([
+          game.pos(player.pos.x + (player.flipX ? -20 : 20), player.pos.y),
+          game.rect(15, 15),
+          game.color(255, 0, 0),
+          game.area(),
+          game.timer(),
+          game.move(player.flipX ? -projectileSpeed : projectileSpeed, 0)
+        ]);
+        
+        projectile.wait(2, () => {
+          game.destroy(projectile)
+        });
+      });
+    }
+
+    // Touch Controls
+    const bindTouch = (id, action) => {
+      const btn = document.getElementById(id);
+      btn.addEventListener('touchstart', (e) => { 
+        e.preventDefault(); 
+        game.pressButton(action);
+        btn.style.transform = 'scale(0.95)';
+        btn.style.background = 'rgba(255,255,255,0.4)';
+      });
+      btn.addEventListener('touchend', (e) => { 
+        e.preventDefault(); 
+        game.releaseButton(action);
+        btn.style.transform = 'scale(1)';
+        btn.style.background = 'rgba(255,255,255,0.2)';
+      });
+    };
+
+    // Bind touch controls
+    bindTouch('leftBtn', 'left');
+    bindTouch('rightBtn', 'right');
+    bindTouch('jumpBtn', 'jump');
+    bindTouch('attackBtn', 'attack');
+
+    // Add event listeners
+    document.getElementById('playBtn').addEventListener('click', startGame);
+    document.getElementById('exitBtn').addEventListener('click', exitGame);
+
+    // Add canvas focus handling
+    document.getElementById('gameCanvas').addEventListener('click', function() {
+      this.focus();
+    });
+
+    // Listen for fullscreen changes
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        exitGame();
       }
-      
-      // Hide fullscreen button
-      document.getElementById('fullscreenBtn').classList.add('hidden');
-    } catch (err) {
-      console.log('Fullscreen failed:', err);
-      // Hide button if fullscreen is not supported
-      document.getElementById('fullscreenBtn').classList.add('hidden');
-    }
-  }
-
-  // Check if fullscreen is supported
-  function isFullscreenSupported() {
-    return document.documentElement.requestFullscreen ||
-           document.documentElement.webkitRequestFullscreen ||
-           document.documentElement.mozRequestFullScreen ||
-           document.documentElement.msRequestFullscreen;
-  }
-
-  // Initialize fullscreen button visibility
-  function initFullscreenButton() {
-    const btn = document.getElementById('fullscreenBtn');
-    if (!isFullscreenSupported()) {
-      btn.classList.add('hidden');
-      return;
-    }
-    updateFullscreenButton();
-  }
-
-  // Check if we're in fullscreen
-  function isFullscreen() {
-    return document.fullscreenElement || 
-           document.webkitFullscreenElement || 
-           document.mozFullScreenElement || 
-           document.msFullscreenElement;
-  }
-
-  // Show/hide fullscreen button based on fullscreen state
-  function updateFullscreenButton() {
-    const btn = document.getElementById('fullscreenBtn');
-    if (isFullscreen() || !isFullscreenSupported()) {
-      btn.classList.add('hidden');
-    } else {
-      btn.classList.remove('hidden');
-    }
-  }
-
-  // Listen for fullscreen changes
-  document.addEventListener('fullscreenchange', updateFullscreenButton);
-  document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
-  document.addEventListener('mozfullscreenchange', updateFullscreenButton);
-  document.addEventListener('MSFullscreenChange', updateFullscreenButton);
-
-  // Add fullscreen button handler
-  document.getElementById('fullscreenBtn').addEventListener('click', enterFullscreen);
-
-  // Initialize fullscreen button on load
-  window.addEventListener('load', initFullscreenButton);
-
-  // Add fullscreen on first interaction
-  let hasInteracted = false;
-  const handleFirstInteraction = async () => {
-    if (!hasInteracted) {
-      hasInteracted = true;
-      await enterFullscreen();
-    }
-  };
-
-  // Touch Controls with visual feedback and fullscreen
-  const bindTouch = (id, action) => {
-    const btn = document.getElementById(id);
-    btn.addEventListener('touchstart', async (e) => { 
-      e.preventDefault(); 
-      game.pressButton(action);
-      btn.style.transform = 'scale(0.95)';
-      btn.style.background = 'rgba(255,255,255,0.4)';
-      await handleFirstInteraction();
     });
-    btn.addEventListener('touchend', (e) => { 
-      e.preventDefault(); 
-      game.releaseButton(action);
-      btn.style.transform = 'scale(1)';
-      btn.style.background = 'rgba(255,255,255,0.2)';
+    document.addEventListener('webkitfullscreenchange', () => {
+      if (!document.webkitFullscreenElement) {
+        exitGame();
+      }
     });
-  };
-
-  // Also add fullscreen trigger to canvas and document
-  document.getElementById('gameCanvas').addEventListener('click', handleFirstInteraction);
-  document.addEventListener('click', handleFirstInteraction);
-  document.addEventListener('touchstart', handleFirstInteraction);
-
-  // Try to enter fullscreen on load
-  window.addEventListener('load', () => {
-    // Small delay to ensure everything is ready
-    setTimeout(handleFirstInteraction, 1000);
-  });
-
-  bindTouch('leftBtn', 'left');
-  bindTouch('rightBtn', 'right');
-  bindTouch('jumpBtn', 'jump');
-  bindTouch('attackBtn', 'attack');
-
-  const speed = 200;
-  const projectileSpeed = 400;
-
-  // Movement
-  game.onButtonDown('left', () => {
-    player.move(-speed, 0);
-    player.flipX = true;
-  });
-  game.onButtonDown('right', () => {
-    player.move(speed, 0);
-    player.flipX = false;
-  });
-  game.onButtonPress('jump', () => player.jump(-400));
-  game.onButtonPress('attack', () => {
-    // Create a projectile
-    const projectile = game.add([
-      game.pos(player.pos.x + (player.flipX ? -20 : 20), player.pos.y),
-      game.rect(15, 15),
-      game.color(255, 0, 0),
-      game.area(),
-      game.timer(),
-      game.move(player.flipX ? -projectileSpeed : projectileSpeed, 0)
-    ]);
-    
-    projectile.wait(2, () => {
-      game.destroy(projectile)
+    document.addEventListener('mozfullscreenchange', () => {
+      if (!document.mozFullScreenElement) {
+        exitGame();
+      }
     });
-  });
-</script>
+    document.addEventListener('MSFullscreenChange', () => {
+      if (!document.msFullscreenElement) {
+        exitGame();
+      }
+    });
+  </script>
 </body>
 </html>
