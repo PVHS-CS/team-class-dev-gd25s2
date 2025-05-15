@@ -198,3 +198,62 @@ function makePackedStaticCanvasLayer(spriteArray, { width, height }, clearCache 
 // // 4. Optimized draw using packed format
 // const packedLayer = [cloud, player];
 // drawPackedSpriteArrayWithCam(packedLayer);
+
+// Sprite utilities
+const spriteUtils = {
+    // Get sprite dimensions safely
+    getSpriteDimensions: (k, spriteName) => {
+        return new Promise((resolve) => {
+            const sprite = k.getSprite(spriteName);
+            if (sprite && sprite.loaded) {
+                resolve({
+                    width: sprite.data.tex.width,
+                    height: sprite.data.tex.height
+                });
+            } else {
+                // Wait for the sprite to be loaded through the asset manager
+                window.assetManager.preloadAssets(k).then(() => {
+                    const loadedSprite = k.getSprite(spriteName);
+                    resolve({
+                        width: loadedSprite.data.tex.width,
+                        height: loadedSprite.data.tex.height
+                    });
+                });
+            }
+        });
+    },
+
+    // Get sprite data safely
+    getSpriteData: (k, spriteName) => {
+        return new Promise((resolve) => {
+            const sprite = k.getSprite(spriteName);
+            if (sprite && sprite.loaded) {
+                resolve(sprite.data);
+            } else {
+                // Wait for the sprite to be loaded through the asset manager
+                window.assetManager.preloadAssets(k).then(() => {
+                    const loadedSprite = k.getSprite(spriteName);
+                    resolve(loadedSprite.data);
+                });
+            }
+        });
+    },
+
+    // Wait for sprite to be loaded
+    waitForSprite: (k, spriteName) => {
+        return new Promise((resolve) => {
+            const sprite = k.getSprite(spriteName);
+            if (sprite && sprite.loaded) {
+                resolve(sprite);
+            } else {
+                // Wait for the sprite to be loaded through the asset manager
+                window.assetManager.preloadAssets(k).then(() => {
+                    resolve(k.getSprite(spriteName));
+                });
+            }
+        });
+    }
+};
+
+// Export the utilities
+window.spriteUtils = spriteUtils;

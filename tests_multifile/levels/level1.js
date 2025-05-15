@@ -38,6 +38,18 @@ function createLevel1() {
         createOrangy(k, ttpx(20), ttpx(5));
 
         createGel(k, ttpx(6), ttpx(12), 255, 0, 0); 
+
+        function createScaledSprite(spriteName, x, y, widthInPixels) {
+            const img_width = k.getSprite(spriteName)["data"].tex.width;
+            const scaleX = widthInPixels / img_width;
+            return k.add([
+                k.sprite(spriteName),
+                k.pos(ttpx(x), ttpx(y)),
+                k.scale(scaleX, scaleX)
+            ]);
+        }
+
+        createScaledSprite("x", 6, 12, 64);
         createGel(k, ttpx(12), ttpx(12), 0, 255, 0);
         createGel(k, ttpx(18), ttpx(12), 0, 0, 255);
 }

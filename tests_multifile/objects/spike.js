@@ -17,6 +17,8 @@ function createSpike(k, x, y) {
         if (player.resetPosition) {
             player.resetPosition();
         }
+        // Destroy the spike
+        spike.destroy();
     });
 
     return spike;

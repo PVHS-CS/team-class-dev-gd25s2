@@ -13,7 +13,27 @@ function registerLevel(name, createLevelFn) {
     });
 
     // Create the scene
-    k.scene(name, () => {
+    k.scene(name, async () => {
+        // Wait for all sprites to be loaded
+        await Promise.all(
+            Object.keys(window.assetManager.ASSETS.sprites).map(spriteName => 
+                new Promise(resolve => {
+                    const sprite = k.getSprite(spriteName);
+                    if (sprite && sprite.loaded) {
+                        resolve();
+                    } else {
+                        // Use onLoad event instead of onSpriteLoad
+                        k.onLoad(() => {
+                            const sprite = k.getSprite(spriteName);
+                            if (sprite && sprite.loaded) {
+                                resolve();
+                            }
+                        });
+                    }
+                })
+            )
+        );
+
         const player = createPlayer(k);
         setupPlayerControls(k, player);
         const level = createLevelFn(k);
