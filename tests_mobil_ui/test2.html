@@ -220,7 +220,11 @@
     try {
       // Try to lock screen orientation first
       if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape');
+        try {
+          await screen.orientation.lock('landscape');
+        } catch (err) {
+          console.log('Orientation lock not supported');
+        }
       }
 
       // Try different fullscreen methods
@@ -243,7 +247,27 @@
       document.getElementById('fullscreenBtn').classList.add('hidden');
     } catch (err) {
       console.log('Fullscreen failed:', err);
+      // Hide button if fullscreen is not supported
+      document.getElementById('fullscreenBtn').classList.add('hidden');
     }
+  }
+
+  // Check if fullscreen is supported
+  function isFullscreenSupported() {
+    return document.documentElement.requestFullscreen ||
+           document.documentElement.webkitRequestFullscreen ||
+           document.documentElement.mozRequestFullScreen ||
+           document.documentElement.msRequestFullscreen;
+  }
+
+  // Initialize fullscreen button visibility
+  function initFullscreenButton() {
+    const btn = document.getElementById('fullscreenBtn');
+    if (!isFullscreenSupported()) {
+      btn.classList.add('hidden');
+      return;
+    }
+    updateFullscreenButton();
   }
 
   // Check if we're in fullscreen
@@ -257,7 +281,7 @@
   // Show/hide fullscreen button based on fullscreen state
   function updateFullscreenButton() {
     const btn = document.getElementById('fullscreenBtn');
-    if (isFullscreen()) {
+    if (isFullscreen() || !isFullscreenSupported()) {
       btn.classList.add('hidden');
     } else {
       btn.classList.remove('hidden');
@@ -272,6 +296,9 @@
 
   // Add fullscreen button handler
   document.getElementById('fullscreenBtn').addEventListener('click', enterFullscreen);
+
+  // Initialize fullscreen button on load
+  window.addEventListener('load', initFullscreenButton);
 
   // Add fullscreen on first interaction
   let hasInteracted = false;
