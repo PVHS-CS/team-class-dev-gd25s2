@@ -166,7 +166,7 @@
   const player = game.add([
     game.pos(400, 300),
     game.rect(32, 32),
-    game.color(255, 255, 255),
+    game.color(255, 255, 0),
     game.area(),
     game.body()
   ]);
@@ -179,6 +179,56 @@
     game.area(),
     game.body({ isStatic: true })
   ]);
+
+  // Handle fullscreen
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+      } else if (document.documentElement.mozRequestFullScreen) {
+        document.documentElement.mozRequestFullScreen();
+      } else if (document.documentElement.msRequestFullscreen) {
+        document.documentElement.msRequestFullscreen();
+      }
+    }
+  }
+
+  // Add fullscreen on first interaction
+  let hasInteracted = false;
+  const handleFirstInteraction = () => {
+    if (!hasInteracted) {
+      hasInteracted = true;
+      toggleFullscreen();
+    }
+  };
+
+  // Touch Controls with visual feedback and fullscreen
+  const bindTouch = (id, action) => {
+    const btn = document.getElementById(id);
+    btn.addEventListener('touchstart', (e) => { 
+      e.preventDefault(); 
+      game.pressButton(action);
+      btn.style.transform = 'scale(0.95)';
+      btn.style.background = 'rgba(255,255,255,0.4)';
+      handleFirstInteraction(); // Add fullscreen trigger here
+    });
+    btn.addEventListener('touchend', (e) => { 
+      e.preventDefault(); 
+      game.releaseButton(action);
+      btn.style.transform = 'scale(1)';
+      btn.style.background = 'rgba(255,255,255,0.2)';
+    });
+  };
+
+  // Also add fullscreen trigger to canvas
+  document.getElementById('gameCanvas').addEventListener('click', handleFirstInteraction);
+
+  bindTouch('leftBtn', 'left');
+  bindTouch('rightBtn', 'right');
+  bindTouch('jumpBtn', 'jump');
+  bindTouch('attackBtn', 'attack');
 
   const speed = 200;
   const projectileSpeed = 400;
@@ -208,28 +258,6 @@
       game.destroy(projectile)
     });
   });
-
-  // Touch Controls with visual feedback
-  const bindTouch = (id, action) => {
-    const btn = document.getElementById(id);
-    btn.addEventListener('touchstart', (e) => { 
-      e.preventDefault(); 
-      game.pressButton(action);
-      btn.style.transform = 'scale(0.95)';
-      btn.style.background = 'rgba(255,255,255,0.4)';
-    });
-    btn.addEventListener('touchend', (e) => { 
-      e.preventDefault(); 
-      game.releaseButton(action);
-      btn.style.transform = 'scale(1)';
-      btn.style.background = 'rgba(255,255,255,0.2)';
-    });
-  };
-
-  bindTouch('leftBtn', 'left');
-  bindTouch('rightBtn', 'right');
-  bindTouch('jumpBtn', 'jump');
-  bindTouch('attackBtn', 'attack');
 </script>
 </body>
 </html>
