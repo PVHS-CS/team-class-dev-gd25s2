@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#000000">
+  <title>Fullscreen & Orientation Test</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    .button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .button:active {
+      background: rgba(255,255,255,0.4);
+      transform: scale(0.95);
+    }
+
+    .status {
+      margin-top: 20px;
+      color: #666;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    #rotateNotice {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      text-align: center;
+      padding-top: 40vh;
+      z-index: 1000;
+    }
+
+    #rotateNotice.visible {
+      display: block;
+    }
+
+    .device-info {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fullscreen & Orientation Test</h1>
+  
+  <button class="button" id="launchBtn">Launch Fullscreen</button>
+  <button class="button" id="fsToggle">Toggle Fullscreen</button>
+  <button class="button" id="orientToggle">Toggle Landscape</button>
+
+  <div class="status" id="status">Status: </div>
+  <div class="device-info" id="deviceInfo"></div>
+
+  <div id="rotateNotice">
+    <h2>🔄 Please Rotate Your Device</h2>
+    <p>This app works best in landscape mode</p>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const deviceInfoEl = document.getElementById('deviceInfo');
+    const rotateNotice = document.getElementById('rotateNotice');
+    let isFullscreen = false;
+
+    // Detect device and browser
+    function detectDevice() {
+      const ua = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+      const isAndroid = /Android/.test(ua);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+      
+      deviceInfoEl.textContent = `Device: ${isIOS ? 'iOS' : isAndroid ? 'Android' : 'Other'}, Browser: ${isSafari ? 'Safari' : 'Other'}`;
+      
+      return { isIOS, isAndroid, isSafari };
+    }
+
+    // Update status display
+    function updateStatus() {
+      const isFs = document.fullscreenElement || 
+                   document.webkitFullscreenElement || 
+                   document.mozFullScreenElement || 
+                   document.msFullscreenElement;
+      
+      const orientation = screen.orientation ? screen.orientation.type : 'N/A';
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      
+      statusEl.textContent = `Status: Fullscreen: ${isFs ? 'Yes' : 'No'}, Orientation: ${orientation}, Landscape: ${isLandscape}`;
+      
+      // Show rotate notice if not in landscape
+      if (!isLandscape) {
+        rotateNotice.classList.add('visible');
+      } else {
+        rotateNotice.classList.remove('visible');
+      }
+    }
+
+    // Enter fullscreen
+    async function enterFullscreen() {
+      const docEl = document.documentElement;
+      try {
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) {
+          await docEl.webkitRequestFullscreen();
+        } else if (docEl.mozRequestFullScreen) {
+          await docEl.mozRequestFullScreen();
+        } else if (docEl.msRequestFullscreen) {
+          await docEl.msRequestFullscreen();
+        }
+        
+        // Try to lock orientation after fullscreen
+        if (screen.orientation && screen.orientation.lock) {
+          try {
+            await screen.orientation.lock('landscape');
+          } catch (err) {
+            console.warn('Orientation lock failed:', err);
+          }
+        }
+        
+        updateStatus();
+      } catch (err) {
+        console.error('Fullscreen error:', err);
+        statusEl.textContent += ` (Error: ${err.message})`;
+      }
+    }
+
+    // Exit fullscreen
+    async function exitFullscreen() {
+      try {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+        updateStatus();
+      } catch (err) {
+        console.error('Exit fullscreen error:', err);
+      }
+    }
+
+    // Toggle fullscreen
+    document.getElementById('fsToggle').addEventListener('click', async () => {
+      if (!document.fullscreenElement) {
+        await enterFullscreen();
+      } else {
+        await exitFullscreen();
+      }
+    });
+
+    // Launch button (fullscreen + orientation)
+    document.getElementById('launchBtn').addEventListener('click', async () => {
+      await enterFullscreen();
+    });
+
+    // Toggle landscape
+    document.getElementById('orientToggle').addEventListener('click', async () => {
+      try {
+        if (screen.orientation) {
+          const current = screen.orientation.type;
+          const newOrientation = current.includes('landscape') ? 'portrait' : 'landscape';
+          await screen.orientation.lock(newOrientation);
+          updateStatus();
+        } else {
+          statusEl.textContent += ' (Orientation API not supported)';
+        }
+      } catch (err) {
+        console.error('Orientation error:', err);
+        statusEl.textContent += ` (Error: ${err.message})`;
+      }
+    });
+
+    // Listen for fullscreen changes
+    document.addEventListener('fullscreenchange', updateStatus);
+    document.addEventListener('webkitfullscreenchange', updateStatus);
+    document.addEventListener('mozfullscreenchange', updateStatus);
+    document.addEventListener('MSFullscreenChange', updateStatus);
+
+    // Listen for orientation changes
+    window.addEventListener('orientationchange', updateStatus);
+    window.addEventListener('resize', updateStatus);
+
+    // Initial setup
+    detectDevice();
+    updateStatus();
+  </script>
+</body>
+</html> 
