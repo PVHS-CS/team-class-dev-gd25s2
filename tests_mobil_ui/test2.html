@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
+  <meta name="full-screen" content="yes">
+  <meta name="browsermode" content="application">
+  <meta name="x5-fullscreen" content="true">
+  <meta name="x5-page-mode" content="app">
   <title>Kaplay.js Platformer Example</title>
   <style>
     html, body {
@@ -16,10 +21,14 @@
       overflow: hidden;
       background: #000;
       position: fixed;
+      
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
+      /* Android specific */
+      min-height: -webkit-fill-available;
+      overscroll-behavior: none;
     }
 
     canvas#gameCanvas {
@@ -31,6 +40,15 @@
       left: 0;
       right: 0;
       bottom: 0;
+      /* Android specific */
+      min-height: -webkit-fill-available;
+    }
+
+    /* Android specific */
+    @supports (-webkit-touch-callout: none) {
+      html, body {
+        height: -webkit-fill-available;
+      }
     }
 
     #rotateNotice {
@@ -68,6 +86,13 @@
       text-align: center;
       user-select: none;
       touch-action: none;
+      transition: all 0.1s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .touch-button:active {
+      background: rgba(255,255,255,0.4);
+      transform: scale(0.95);
     }
 
     #leftBtn  { left: 5%; }
@@ -77,6 +102,22 @@
 
     @media (pointer: fine) {
       .touch-button { display: none; }
+    }
+
+    /* Prevent text selection and context menu */
+    * {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Prevent pull-to-refresh */
+    body {
+      overscroll-behavior: none;
     }
   </style>
 </head>
@@ -92,6 +133,18 @@
 
 <script src="https://unpkg.com/kaplay@3001/dist/kaplay.js"></script>
 <script>
+  // Prevent default touch behaviors
+  document.addEventListener('touchmove', function(e) {
+    if (e.target.classList.contains('touch-button')) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  // Prevent double-tap zoom
+  document.addEventListener('dblclick', function(e) {
+    e.preventDefault();
+  }, { passive: false });
+
   const game = kaplay({
     canvas: document.getElementById('gameCanvas'),
     width: 800,
@@ -152,23 +205,31 @@
     ]);
     
     projectile.wait(2, () => {
-      console.log("die");
-      game.destroy(projectile);
+      game.destroy(projectile)
     });
   });
 
-  // Touch Controls
+  // Touch Controls with visual feedback
   const bindTouch = (id, action) => {
     const btn = document.getElementById(id);
-    btn.addEventListener('touchstart', (e) => { e.preventDefault(); game.pressButton(action); });
-    btn.addEventListener('touchend', (e) => { e.preventDefault(); game.releaseButton(action); });
+    btn.addEventListener('touchstart', (e) => { 
+      e.preventDefault(); 
+      game.pressButton(action);
+      btn.style.transform = 'scale(0.95)';
+      btn.style.background = 'rgba(255,255,255,0.4)';
+    });
+    btn.addEventListener('touchend', (e) => { 
+      e.preventDefault(); 
+      game.releaseButton(action);
+      btn.style.transform = 'scale(1)';
+      btn.style.background = 'rgba(255,255,255,0.2)';
+    });
   };
 
   bindTouch('leftBtn', 'left');
   bindTouch('rightBtn', 'right');
   bindTouch('jumpBtn', 'jump');
   bindTouch('attackBtn', 'attack');
-
 </script>
 </body>
 </html>
