@@ -30,7 +30,7 @@ function createLevel1() {
         createSpike(k, ttpx(8), ttpx(10));
     
         // Add a portal to level8
-        createPortal(k, ttpx(5), ttpx(5), "level8");
+        createPortal(k, ttpx(5), ttpx(5), "carter");
 
         createOrangy(k, ttpx(5 ), ttpx(5));
         createOrangy(k, ttpx(10), ttpx(5));
