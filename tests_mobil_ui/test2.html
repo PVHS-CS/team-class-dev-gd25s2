@@ -148,6 +148,7 @@
       transition: all 0.1s ease;
       -webkit-tap-highlight-color: transparent;
       z-index: 1000;
+      cursor: pointer;
     }
 
     #exitBtn:active {
@@ -157,6 +158,10 @@
 
     #exitBtn.hidden {
       display: none;
+    }
+
+    #exitBtn.fullscreen {
+      background: rgba(255,255,255,0.3);
     }
 
     /* Prevent text selection and context menu */
@@ -216,24 +221,32 @@
     }, { passive: false });
 
     // Initialize game but don't start it yet
-    const game = kaplay({
-      canvas: document.getElementById('gameCanvas'),
-      width: GAME_CONFIG.width,
-      height: GAME_CONFIG.height,
-      stretch: true,
-      letterbox: true,
-      background: [0, 0, 0],
-      pixelDensity: 1,
-      buttons: {
-        left: { keyboard: ['left', 'a'] },
-        right: { keyboard: ['right', 'd'] },
-        jump: { keyboard: ['space', 'up'] },
-        attack: { keyboard: ['x', 'z'] }
-      },
-      crisp: true,
-      maxFPS: GAME_CONFIG.maxFPS,
-      debug: false
-    });
+    let game = null;
+
+    // Create game instance only once
+    function initGame() {
+      if (!game) {
+        game = kaplay({
+          canvas: document.getElementById('gameCanvas'),
+          width: GAME_CONFIG.width,
+          height: GAME_CONFIG.height,
+          stretch: true,
+          letterbox: true,
+          background: [0, 0, 0],
+          pixelDensity: 1,
+          buttons: {
+            left: { keyboard: ['left', 'a'] },
+            right: { keyboard: ['right', 'd'] },
+            jump: { keyboard: ['space', 'up'] },
+            attack: { keyboard: ['x', 'z'] }
+          },
+          crisp: true,
+          maxFPS: GAME_CONFIG.maxFPS,
+          debug: false
+        });
+      }
+      return game;
+    }
 
     // Hide game elements initially
     function hideGameElements() {
@@ -273,18 +286,19 @@
 
     async function exitFullscreen() {
       try {
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          await document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-          await document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-          await document.msExitFullscreen();
+        if (document.fullscreenElement) {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            await document.webkitExitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            await document.mozCancelFullScreen();
+          } else if (document.msExitFullscreen) {
+            await document.msExitFullscreen();
+          }
         }
       } catch (err) {
         console.error('Exit fullscreen failed:', err);
-        throw err;
       }
     }
 
@@ -298,41 +312,81 @@
           try {
             await screen.orientation.lock('landscape');
           } catch (err) {
-            console.warn('Orientation lock failed:', err);
+            // Only log as warning if it's not a NotSupportedError
+            if (err.name !== 'NotSupportedError') {
+              console.warn('Orientation lock failed:', err);
+            }
           }
         }
 
         document.getElementById('menuScreen').classList.add('hidden');
         showGameElements();
         document.getElementById('gameCanvas').focus();
-        initializeGame();
+        
+        // Initialize game if not already done
+        if (!game) {
+          game = initGame();
+          initializeGame();
+        }
+
+        // Update button state
+        updateFullscreenButton();
       } catch (err) {
         console.error('Game start failed:', err);
         // Fallback to non-fullscreen mode
         document.getElementById('menuScreen').classList.add('hidden');
         showGameElements();
         document.getElementById('gameCanvas').focus();
-        initializeGame();
+        
+        // Initialize game if not already done
+        if (!game) {
+          game = initGame();
+          initializeGame();
+        }
+
+        // Update button state
+        updateFullscreenButton();
       }
     }
 
-    // Exit fullscreen and return to menu
-    async function exitGame() {
+    // Toggle fullscreen
+    async function toggleFullscreen() {
       try {
-        await exitFullscreen();
+        if (document.fullscreenElement || 
+            document.webkitFullscreenElement || 
+            document.mozFullScreenElement || 
+            document.msFullscreenElement) {
+          await exitFullscreen();
+        } else {
+          await requestFullscreen();
+        }
+        updateFullscreenButton();
+        // Refocus canvas to ensure controls work
+        document.getElementById('gameCanvas').focus();
       } catch (err) {
-        console.error('Exit fullscreen failed:', err);
-      } finally {
-        document.getElementById('menuScreen').classList.remove('hidden');
-        hideGameElements();
+        console.error('Fullscreen toggle failed:', err);
       }
+    }
+
+    // Update fullscreen button appearance
+    function updateFullscreenButton() {
+      const exitBtn = document.getElementById('exitBtn');
+      const isFullscreen = document.fullscreenElement || 
+                          document.webkitFullscreenElement || 
+                          document.mozFullScreenElement || 
+                          document.msFullscreenElement;
+      
+      exitBtn.textContent = isFullscreen ? '✕' : '⛶';
+      exitBtn.classList.toggle('fullscreen', !isFullscreen);
     }
 
     // Initialize game elements
     function initializeGame() {
       try {
-        // Clear any existing game elements
-        game.destroyAll();
+        if (!game) {
+          console.error('Game instance not found');
+          return;
+        }
 
         // Basic player setup
         const player = game.add([
@@ -423,7 +477,7 @@
 
     // Add event listeners
     document.getElementById('playBtn').addEventListener('click', startGame);
-    document.getElementById('exitBtn').addEventListener('click', exitGame);
+    document.getElementById('exitBtn').addEventListener('click', toggleFullscreen);
 
     // Add canvas focus handling
     document.getElementById('gameCanvas').addEventListener('click', function() {
@@ -440,12 +494,7 @@
 
     fullscreenEvents.forEach(event => {
       document.addEventListener(event, () => {
-        if (!document.fullscreenElement && 
-            !document.webkitFullscreenElement && 
-            !document.mozFullScreenElement && 
-            !document.msFullscreenElement) {
-          exitGame();
-        }
+        updateFullscreenButton();
       });
     });
 
